@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="MiniGame/MiniGame.vcxproj" />
+  <Project Path="MiniGame/MiniGame.vcxproj" Id="3e6d731a-41a3-4e13-926e-740590bf8382" />
 </Solution>

@@ -1,7 +1,5 @@
 #pragma once
 
-extern void Logic();
-extern void CreatePlayerBullet();
 
 
 // test!! 

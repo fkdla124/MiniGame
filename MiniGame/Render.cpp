@@ -5,40 +5,63 @@
 
 char gameScreen[SCREEN_ROW][SCREEN_COL];
 
-void Render()
+void DrawGameScreen()
 {
-	ClearGameMap();
+	// 테두리 꾸미기용
+	char line[SCREEN_COL + 2];
+	memset(line, '=', sizeof(line));
+	line[sizeof(line) - 1] = '\0';
 
-	// Enemy Draw
-	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
+	char* ptr;
+	switch (scene)
 	{
-		if (enemys[i].visible)
-			DrawSprite(enemys[i].row, enemys[i].col, '0');
+		case TITLE_SCENE:
+			memcpy(&line[sizeof(line) / 2 - (sizeof(" TITLE ") - 1)], " TITLE ", sizeof(" TITLE ") - 1);
+			break;
+		case LOAD_SCENE:
+			memcpy(&line[sizeof(line) / 2 - (sizeof(" LOADING ") - 1)], " LOADING ", sizeof(" LOADING ") - 1);
+			break;
+		case GAME_SCENE:
+			ptr = (char*)memcpy(&line[sizeof(line) / 2 - (sizeof(" STAGE ") - 1)], " STAGE ", sizeof(" STAGE ") - 1);
+			ptr += sizeof(" STAGE ") - 1;
+			*ptr++ = currentStage + '0' + 1;
+			*ptr = ' ';
+			break;
+		case GAME_OVER_SCENE:
+			memcpy(&line[sizeof(line) / 2 - (sizeof(" GAME OVER ") - 1)], " GAME OVER ", sizeof(" GAME OVER ") - 1);
+			break;
+		case GAME_CLEAR_SCENE:
+			memcpy(&line[sizeof(line) / 2 - (sizeof(" GAME CLEAR ") - 1)], " GAME CLEAR ", sizeof(" GAME CLEAR ") - 1);
+			break;
 	}
-
-	// Player Draw
-	DrawSprite(player.row, player.col, '#');
-
-	// Player Bullet Draw
-	for (int i = 0; i < MAX_PLAYER_BULLET_COUNT; i++)
-	{
-		if (playerBullets[i].visible)
-			DrawSprite(playerBullets[i].row, playerBullets[i].col, 'B');
-	}
+	MoveConsoleCursor(0, 0);
+	std::cout << line;
+	// ====
 
 
-	// Screen Buffer Draw
+
+	// 게임 화면 그리기
 	for (int i = 0; i < SCREEN_ROW; i++)
 	{
-		MoveConsoleCursor(0, i);
-		std::cout << gameScreen[i];
+		MoveConsoleCursor(0, i + 1);
+		std::cout << "|" << gameScreen[i] << "|";
 	}
 
-	std::cout << "player row : " << player.row;
-	std::cout << " player col : " << player.col;
+
+
+
+	// 테두리 꾸미기용
+	MoveConsoleCursor(0, SCREEN_ROW + 1);
+	memset(line, '=', sizeof(line));
+	line[sizeof(line) - 1] = '\0';
+	std::cout << line << std::endl;
+
+	std::cout << " Move : arrows" << std::endl;
+	std::cout << " Shot : z" << std::endl;
+	// ====
 }
 
-void ClearGameMap()
+void ClearGameScreen()
 {
 	memset(gameScreen, ' ', sizeof(gameScreen));
 

@@ -1,7 +1,9 @@
 #pragma once
+#include "Render.h"
+
 
 #define MAX_ENEMY_COUNT 100
-#define MAX_PLAYER_BULLET_COUNT 100
+#define MAX_PLAYER_BULLET_COUNT 10
 #define MAX_ENEMY_BULLET_COUNT 100
 
 struct Player
@@ -43,6 +45,26 @@ struct EnemyBullet
 
 	int damage;
 };
+
+struct Stage
+{
+	char screen[SCREEN_ROW][SCREEN_COL];
+};
+
+enum Scene
+{
+	GAME_SCENE = 0,
+	GAME_OVER_SCENE = 1,
+	GAME_CLEAR_SCENE = 2,
+	LOAD_SCENE = 3,
+	TITLE_SCENE = 4,
+
+	EXIT_SCENE = -1
+};
+
+extern Scene scene;
+extern int currentStage;
+extern int stageCount;
 
 extern Player player;
 extern Enemy enemys[MAX_ENEMY_COUNT];
