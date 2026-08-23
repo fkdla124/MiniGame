@@ -1,0 +1,5 @@
+1 enemy/enemy1.txt
+2 enemy/enemy2.txt
+3 enemy/enemy3.txt
+4 enemy/enemy4.txt
+B enemy/enemy5.txt

@@ -10,12 +10,29 @@ extern Scene scene;
 
 FILE* fp;
 const char* stageInfoFileName = "stage/stage_info.txt";
+const char* enemyInfoFileName = "enemy/enemy_info.txt";
 bool openFile = true;
 
 bool firstLoad = true;
 
+struct FileLoadEnemyData
+{
+	char enemyId;
+
+	MoveType moveType;
+	ShotType shotType;
+	int moveRange;
+	int hp;
+	int attack;
+	int moveSpeed;
+	int bulletSpeed;
+	float shotCooldown;
+};
+
 int stageCount;
 Stage* stages;
+int enemyTypeCount;
+FileLoadEnemyData* enemyDatas;
 
 static void LoadSceneInput();
 static void LoadSceneLogic();
@@ -49,23 +66,34 @@ static void LoadSceneLogic()
 	memset(enemyBullets, 0, sizeof(enemyBullets));
 	memset(playerBullets, 0, sizeof(playerBullets));
 	memset(enemys, 0, sizeof(enemys));
-	memset(&player, 0, sizeof(player));
 
 	for (int i = 0; i < SCREEN_ROW; i++)
 	{
 		for (int j = 0; j < SCREEN_COL - 1; j++)
 		{
-			if (stages[currentStage].screen[i][j] == '1')
+			for (int q = 0; q < enemyTypeCount; q++)
 			{
-				for (int k = 0; k < MAX_ENEMY_COUNT; k++)
+				if (stages[currentStage].screen[i][j] == enemyDatas[q].enemyId)
 				{
-					if (!enemys[k].visible)
+					for (int k = 0; k < MAX_ENEMY_COUNT; k++)
 					{
-						enemys[k].row = i;
-						enemys[k].col = j;
-						enemys[k].hp = 100;
-						enemys[k].visible = true;
-						break;
+						if (!enemys[k].visible)
+						{
+							enemys[k].moveType = enemyDatas[q].moveType;
+							enemys[k].shotType = enemyDatas[q].shotType;
+							enemys[k].hp = enemyDatas[q].hp;
+							enemys[k].attack = enemyDatas[q].attack;
+							enemys[k].moveSpeed = enemyDatas[q].moveSpeed;
+							enemys[k].bulletSpeed = enemyDatas[q].bulletSpeed;
+							enemys[k].shotCooldown = enemyDatas[q].shotCooldown;
+							enemys[k].moveRange = enemyDatas[q].moveRange;
+							enemys[k].spawnRow = i;
+							enemys[k].spawnCol = j;
+							enemys[k].row = i;
+							enemys[k].col = j;
+							enemys[k].visible = true;
+							break;
+						}
 					}
 				}
 			}
@@ -76,10 +104,18 @@ static void LoadSceneLogic()
 	//TestEnemySet();
 
 	// player create
+	if (currentStage == 0)
+	{
+		memset(&player, 0, sizeof(player));
+		player.hp = 5;
+	}
 	player.row = SCREEN_ROW - 3;
 	player.col = SCREEN_COL / 2;
 	player.visible = true;
-	player.hp = 100;
+	player.attack = 1;
+	player.moveSpeed = 20;
+	player.shotCooldown = 0.1f;
+	player.bulletSpeed = 20;
 
 	scene = GAME_SCENE;
 }
@@ -155,4 +191,72 @@ static void LoadGameData()
 		delete[] stageFileNames[i];
 	}
 	delete[] stageFileNames;
+
+	fopen_s(&fp, enemyInfoFileName, "r");
+
+	if (fp == NULL)
+	{
+		scene = EXIT_SCENE;
+		openFile = false;
+		return;
+	}
+
+	while (!feof(fp))
+	{
+		enemyTypeCount++;
+		fgets(buffer, sizeof(buffer), fp);
+	}
+
+	enemyDatas = new FileLoadEnemyData[enemyTypeCount];
+
+	fseek(fp, 0, SEEK_SET);
+
+	int index = 0;
+	while (!feof(fp))
+	{
+		fgets(buffer, sizeof(buffer), fp);
+		char fileName[30];
+		int ret = sscanf_s(buffer, " %c %29s",
+			&enemyDatas[index].enemyId, (unsigned)sizeof(enemyDatas[index].enemyId),
+			fileName, (unsigned)sizeof(fileName));
+
+		if (ret != 2) {
+			// 파싱 실패 처리
+			return;
+		}
+
+		FILE* fp2;
+		fopen_s(&fp2, fileName, "r");
+
+		if (fp2 == NULL)
+		{
+			scene = EXIT_SCENE;
+			openFile = false;
+			return;
+		}
+
+		int value;
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "moveType=%d", &value);
+		enemyDatas[index].moveType = static_cast<MoveType>(value);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "moveRange=%d", &enemyDatas[index].moveRange);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "shotType=%d", &value);
+		enemyDatas[index].shotType = static_cast<ShotType>(value);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "hp=%d", &enemyDatas[index].hp);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "attack=%d", &enemyDatas[index].attack);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "moveSpeed=%d", &enemyDatas[index].moveSpeed);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "bulletSpeed=%d", &enemyDatas[index].bulletSpeed);
+		fgets(buffer, sizeof(buffer), fp2);
+		sscanf_s(buffer, "shotCooldown=%f", &enemyDatas[index].shotCooldown);
+		fclose(fp2);
+
+		index++;
+	}
+	fclose(fp);
 }

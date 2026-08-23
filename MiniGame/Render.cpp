@@ -54,10 +54,12 @@ void DrawGameScreen()
 	MoveConsoleCursor(0, SCREEN_ROW + 1);
 	memset(line, '=', sizeof(line));
 	line[sizeof(line) - 1] = '\0';
-	std::cout << line << std::endl;
+	std::cout << line;
+	MoveConsoleCursor(0, SCREEN_ROW + 2);
 
-	std::cout << " Move : arrows" << std::endl;
-	std::cout << " Shot : z" << std::endl;
+	std::cout << " Move : arrows";
+	MoveConsoleCursor(0, SCREEN_ROW + 3);
+	std::cout << " Shot : z";
 	// ====
 }
 
