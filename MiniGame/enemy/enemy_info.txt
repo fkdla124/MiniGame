@@ -3,3 +3,4 @@
 3 enemy/enemy3.txt
 4 enemy/enemy4.txt
 B enemy/enemy5.txt
+5 enemy/enemy6.txt

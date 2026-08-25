@@ -9,6 +9,9 @@ static void TitleSceneRender();
 
 void TitleScene()
 {
+	// 키 입력 쿨타임 대용
+	//Sleep(150);
+
 	TitleSceneInput();
 
 	TitleSceneLogic();

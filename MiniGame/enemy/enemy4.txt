@@ -6,3 +6,4 @@ attack=1
 moveSpeed=0
 bulletSpeed=10
 shotCooldown=2
+movePattern=1

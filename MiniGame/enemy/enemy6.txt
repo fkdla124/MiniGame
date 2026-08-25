@@ -1,0 +1,9 @@
+moveType=1
+moveRange=0
+shotType=2
+hp=5
+attack=1
+moveSpeed=10
+bulletSpeed=5
+shotCooldown=1
+movePattern=3

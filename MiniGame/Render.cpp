@@ -5,6 +5,8 @@
 
 char gameScreen[SCREEN_ROW][SCREEN_COL];
 
+extern int fps;
+
 void DrawGameScreen()
 {
 	// 테두리 꾸미기용
@@ -56,10 +58,20 @@ void DrawGameScreen()
 	line[sizeof(line) - 1] = '\0';
 	std::cout << line;
 	MoveConsoleCursor(0, SCREEN_ROW + 2);
-
 	std::cout << " Move : arrows";
+
 	MoveConsoleCursor(0, SCREEN_ROW + 3);
 	std::cout << " Shot : z";
+
+	std::cout << "               HP : ";
+	for (int i = 0; i < player.hp; i++)
+	{
+		std::cout << "|";
+	}
+	std::cout << "    ";
+
+	MoveConsoleCursor(0, SCREEN_ROW + 4);
+	std::cout << " FPS : " << fps << "    ";
 	// ====
 }
 

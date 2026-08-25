@@ -3,7 +3,7 @@
 
 
 #define MAX_ENEMY_COUNT 100
-#define MAX_PLAYER_BULLET_COUNT 30
+#define MAX_PLAYER_BULLET_COUNT 50
 #define MAX_ENEMY_BULLET_COUNT 300
 
 struct Player
@@ -12,9 +12,14 @@ struct Player
 
 	int hp;
 	int attack;
+
+	// 프레임 의존
 	int moveSpeed;
-	float moveTimer;
+	int moveTimer;
+
 	int bulletSpeed;
+
+	// 시간 의존
 	float shotCooldown;
 	float shotTimer;
 
@@ -39,17 +44,28 @@ struct Enemy
 {
 	bool visible;
 
+	char sprite;
+
 	MoveType moveType;
 	ShotType shotType;
 
 	int moveRange;
 	int moveDirection;
 
+	char* movePattern;
+	int movePatternSize;
+	int movePatternIndex;
+
 	int hp;
 	int attack;
+
+	// 프레임 의존
 	int moveSpeed;
-	float moveTimer;
+	int moveTimer;
+
 	int bulletSpeed;
+
+	// 시간 의존
 	float shotCooldown;
 	float shotTimer;
 
@@ -66,21 +82,11 @@ struct PlayerBullet
 	int row;
 	int col;
 
+	// 프레임 의존
 	int moveSpeed;
-	float moveTimer;
-	int damage;
-};
+	int moveTimer;
 
-enum class BulletDirection
-{
-	LEFT = 0,
-	LEFT_UP = 1,
-	UP = 2,
-	RIGHT_UP = 3,
-	RIGHT = 4,
-	RIGHT_DOWN = 5,
-	DOWN = 6,
-	LEFT_DOWN = 7,
+	int damage;
 };
 
 struct EnemyBullet
@@ -89,11 +95,14 @@ struct EnemyBullet
 
 	int row;
 	int col;
+	int drow; // 이동방향
+	int dcol; // 이동방향
 
+	// 프레임 의존
 	int moveSpeed;
-	float moveTimer;
+	int moveTimer;
+
 	int damage;
-	BulletDirection direction;
 };
 
 struct Stage

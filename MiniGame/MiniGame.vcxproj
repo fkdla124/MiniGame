@@ -155,6 +155,7 @@
     </ClCompile>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Logic.cpp" />
+    <ClCompile Include="profile.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Title_Scene.cpp" />
   </ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Logic.h" />
+    <ClInclude Include="profile.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>
