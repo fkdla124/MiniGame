@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <windows.h>
@@ -6,10 +6,6 @@
 
 #include "Console.h"
 #include "Data.h"
-
-#include "Input.h"
-#include "Logic.h"
 #include "Render.h"
-
 #include "Scene.h"
 

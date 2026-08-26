@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Render.h"
 
 
@@ -46,11 +46,7 @@ struct Enemy
 
 	char sprite;
 
-	MoveType moveType;
 	ShotType shotType;
-
-	int moveRange;
-	int moveDirection;
 
 	char* movePattern;
 	int movePatternSize;
@@ -69,8 +65,6 @@ struct Enemy
 	float shotCooldown;
 	float shotTimer;
 
-	int spawnRow;
-	int spawnCol;
 	int row;
 	int col;
 };

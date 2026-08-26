@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include "Render.h"
 #include "Scene.h"
 #include "Data.h"
@@ -23,7 +23,7 @@ static void GameOverSceneInput()
 		scene = EXIT_SCENE;
 	}
 
-	if (GetAsyncKeyState('1'))
+	if (GetAsyncKeyState('1') & 0x0001)
 	{
 		scene = TITLE_SCENE;
 	}

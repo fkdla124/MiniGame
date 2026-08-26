@@ -145,26 +145,14 @@
     <ClCompile Include="Game_Clear_Scene.cpp" />
     <ClCompile Include="Game_Over_Scene.cpp" />
     <ClCompile Include="Game_Scene.cpp" />
-    <ClCompile Include="Input.cpp" />
     <ClCompile Include="Load_Scene.cpp" />
-    <ClCompile Include="ddd.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Logic.cpp" />
-    <ClCompile Include="profile.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Title_Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="Logic.h" />
-    <ClInclude Include="profile.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>

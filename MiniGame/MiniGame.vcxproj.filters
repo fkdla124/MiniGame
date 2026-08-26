@@ -16,20 +16,11 @@
     <Filter Include="소스 파일\Console">
       <UniqueIdentifier>{8b11e4e2-8502-4f81-8605-e4219cf64c15}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\참고">
-      <UniqueIdentifier>{a7b3b691-9060-40ec-8c8f-8431f8a79a2b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Scene">
       <UniqueIdentifier>{7af500f9-bcf5-42c3-84fa-ac581bfd1e6c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\Input">
-      <UniqueIdentifier>{dbeac282-80cb-4b13-be07-29418ad2f052}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Render">
       <UniqueIdentifier>{39d2a5cc-0b34-44c7-9a61-28073af15995}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Logic">
-      <UniqueIdentifier>{5bca1ef8-8ff3-4f0d-b280-00ccbaa13ea6}</UniqueIdentifier>
     </Filter>
     <Filter Include="소스 파일\Data">
       <UniqueIdentifier>{09987222-91d8-459e-a680-5c2ac7e3c16a}</UniqueIdentifier>
@@ -38,9 +29,6 @@
   <ItemGroup>
     <ClCompile Include="Console.cpp">
       <Filter>소스 파일\Console</Filter>
-    </ClCompile>
-    <ClCompile Include="ddd.cpp">
-      <Filter>소스 파일\참고</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp">
       <Filter>소스 파일</Filter>
@@ -60,46 +48,28 @@
     <ClCompile Include="Title_Scene.cpp">
       <Filter>소스 파일\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
-      <Filter>소스 파일\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Logic.cpp">
-      <Filter>소스 파일\Logic</Filter>
-    </ClCompile>
     <ClCompile Include="Render.cpp">
       <Filter>소스 파일\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Data.h">
-      <Filter>소스 파일\Data</Filter>
     </ClCompile>
     <ClCompile Include="Data.cpp">
       <Filter>소스 파일\Data</Filter>
     </ClCompile>
-    <ClCompile Include="profile.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="Data.h">
+      <Filter>헤더 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Console.h">
-      <Filter>소스 파일\Console</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>소스 파일\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Logic.h">
-      <Filter>소스 파일\Logic</Filter>
-    </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>소스 파일\Input</Filter>
+    <ClInclude Include="Game.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Render.h">
-      <Filter>소스 파일\Render</Filter>
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>소스 파일</Filter>
+    <ClInclude Include="Console.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="profile.h">
-      <Filter>소스 파일</Filter>
+    <ClInclude Include="Scene.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

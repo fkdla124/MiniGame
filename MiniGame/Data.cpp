@@ -1,4 +1,4 @@
-#include "Data.h"
+﻿#include "Data.h"
 
 Player player;
 Enemy enemys[MAX_ENEMY_COUNT];

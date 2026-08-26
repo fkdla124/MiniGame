@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include "Render.h"
 #include "Scene.h"
 #include "Data.h"
@@ -9,9 +9,6 @@ static void TitleSceneRender();
 
 void TitleScene()
 {
-	// 키 입력 쿨타임 대용
-	//Sleep(150);
-
 	TitleSceneInput();
 
 	TitleSceneLogic();
@@ -26,7 +23,7 @@ static void TitleSceneInput()
 		scene = EXIT_SCENE;
 	}
 
-	if (GetAsyncKeyState('1'))
+	if (GetAsyncKeyState('1') & 0x0001)
 	{
 		currentStage = 0;
 		scene = LOAD_SCENE;

@@ -1,5 +1,3 @@
-moveType=1
-moveRange=0
 shotType=1
 hp=3
 attack=1

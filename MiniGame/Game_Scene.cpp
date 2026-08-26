@@ -1,4 +1,4 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include <cmath>
 
 static void GameSceneInput();
@@ -6,7 +6,8 @@ static void GameSceneLogic();
 static void GameSceneRender();
 
 // Logic
-static void EnemyAI();
+static void ShotEnemy();
+static void MoveEnemy();
 static void MovePlayerBullet();
 static void CreatePlayerBullet();
 static void PlayerBulletCollision();
@@ -15,19 +16,15 @@ static void MoveEnemyBullet();
 static void CreateEnemyBullet(Enemy* enemy, int drow, int dcol);
 static void EnemyBulletCollision();
 
+static void UpdateTick();
 static void UpdatePlayer();
 static void UpdateEnemy();
 static void UpdatePlayerBullets();
 static void UpdateEnemyBullets();
 static void CheckCollision();
 
-static void CreateEnemy(int row, int col);
-
 unsigned long tick = timeGetTime();
 static float deltaTime;
-
-// 테스트용. 지워야됨. 타이틀이나 이런데서 키 입력하는거 쿨타임 주려고 만듬
-static float testTimer;
 
 void GameScene()
 {
@@ -62,6 +59,7 @@ static void GameSceneInput()
 		player.moveTimer = 0;
 	}
 
+	// 플레이어 총알 발사
 	if (GetAsyncKeyState('Z'))
 	{
 		CreatePlayerBullet();
@@ -74,23 +72,16 @@ static void GameSceneInput()
 	}
 
 	// 적 + 총알 제거
-	if (GetAsyncKeyState('X'))
+	if (GetAsyncKeyState('X') & 0x0001)
 	{
-		if (testTimer >= 0.1f)
-		{
-			memset(enemyBullets, 0, sizeof(enemyBullets));
-			memset(enemys, 0, sizeof(enemys));
-			testTimer = 0;
-		}
+		memset(enemyBullets, 0, sizeof(enemyBullets));
+		memset(enemys, 0, sizeof(enemys));
 	}
 }
 
 static void GameSceneLogic()
 {
-	unsigned long diff = timeGetTime() - tick;
-	deltaTime = static_cast<float>(diff) / 1000.0f;
-	tick = timeGetTime();
-	testTimer += deltaTime;
+	UpdateTick();
 
 	UpdatePlayer();
 	UpdateEnemy();
@@ -100,6 +91,39 @@ static void GameSceneLogic()
 	CheckCollision();
 
 	CheckGameClear();
+}
+
+static void GameSceneRender()
+{
+	// 화면 비우기
+	ClearGameScreen();
+
+	// 플레이어 총알 그리기
+	for (int i = 0; i < MAX_PLAYER_BULLET_COUNT; i++)
+	{
+		if (playerBullets[i].visible)
+			DrawSprite(playerBullets[i].row, playerBullets[i].col, '|');
+	}
+
+	// 적 총알 그리기
+	for (int i = 0; i < MAX_ENEMY_BULLET_COUNT; i++)
+	{
+		if (enemyBullets[i].visible)
+			DrawSprite(enemyBullets[i].row, enemyBullets[i].col, '*');
+	}
+
+	// 적 그리기
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
+	{
+		if (enemys[i].visible)
+			DrawSprite(enemys[i].row, enemys[i].col, enemys[i].sprite);
+	}
+
+	// 플레이어 그리기
+	DrawSprite(player.row, player.col, 'P');
+
+	// 화면 출력
+	DrawGameScreen();
 }
 
 static void UpdatePlayer()
@@ -118,7 +142,8 @@ static void UpdateEnemy()
 		}
 	}
 
-	EnemyAI();
+	MoveEnemy();
+	ShotEnemy();
 }
 static void UpdatePlayerBullets()
 {
@@ -171,142 +196,65 @@ static void CheckGameClear()
 	}
 }
 
-static void GameSceneRender()
+static void MoveEnemy()
 {
-	ClearGameScreen();
-
-	// Player Bullet Draw
-	for (int i = 0; i < MAX_PLAYER_BULLET_COUNT; i++)
-	{
-		if (playerBullets[i].visible)
-			DrawSprite(playerBullets[i].row, playerBullets[i].col, '|');
-	}
-
-	// Enemy Bullet Draw
-	for (int i = 0; i < MAX_ENEMY_BULLET_COUNT; i++)
-	{
-		if (enemyBullets[i].visible)
-			DrawSprite(enemyBullets[i].row, enemyBullets[i].col, '*');
-	}
-
-	// Enemy Draw
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
 	{
-		if (enemys[i].visible)
-			DrawSprite(enemys[i].row, enemys[i].col, enemys[i].sprite);
+		if (!enemys[i].visible || enemys[i].movePatternSize == 0 || enemys[i].moveTimer < (50 / enemys[i].moveSpeed))
+			continue;
+
+		switch (enemys[i].movePattern[enemys[i].movePatternIndex])
+		{
+			case 'L':
+				enemys[i].col = max(enemys[i].col - 1, 0);
+				break;
+			case 'R':
+				enemys[i].col = min(enemys[i].col + 1, SCREEN_COL - 2);
+				break;
+			case 'U':
+				enemys[i].row = max(enemys[i].row - 1, 0);
+				break;
+			case 'D':
+				enemys[i].row = min(enemys[i].row + 1, SCREEN_ROW - 1);
+				break;
+		}
+
+		enemys[i].movePatternIndex = (enemys[i].movePatternIndex + 1) % enemys[i].movePatternSize;
+		enemys[i].moveTimer = 0;
 	}
-
-	// Player Draw
-	DrawSprite(player.row, player.col, 'P');
-
-	// Game Screen Draw
-	DrawGameScreen();
 }
 
-static void EnemyAI()
+static void ShotEnemy()
 {
-	// move logic
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
 	{
-		if (enemys[i].visible)
+		if (!enemys[i].visible || enemys[i].shotTimer < enemys[i].shotCooldown)
+			continue;
+
+		switch (enemys[i].shotType)
 		{
-			if (enemys[i].movePatternSize != 0)
-			{
-				if (enemys[i].moveTimer >= (50 / enemys[i].moveSpeed))
-				{
-					switch (enemys[i].movePattern[enemys[i].movePatternIndex])
-					{
-						case 'L':
-							enemys[i].col = max(enemys[i].col - 1, 0);
-							break;
-						case 'R':
-							enemys[i].col = min(enemys[i].col + 1, SCREEN_COL - 2);
-							break;
-						case 'U':
-							enemys[i].row = max(enemys[i].row - 1, 0);
-							break;
-						case 'D':
-							enemys[i].row = min(enemys[i].row + 1, SCREEN_ROW - 1);
-							break;
-					}
-
-					char testbuffer[100];
-					sprintf_s(testbuffer, sizeof(testbuffer), "movePatternIndex : %d, %c\n", enemys[i].movePatternIndex, enemys[i].movePattern[enemys[i].movePatternIndex]);
-					OutputDebugStringA(testbuffer);
-
-					enemys[i].movePatternIndex = (enemys[i].movePatternIndex + 1) % enemys[i].movePatternSize;
-					enemys[i].moveTimer = 0;
-				}
-			}
-
-			//switch (enemys[i].moveType)
-			//{
-			//	case MoveType::STOP:
-			//		break;
-			//	case MoveType::LEFT_RIGHT:
-			//		if (enemys[i].moveDirection == 0) // left
-			//		{
-			//			// 좌표가 화면밖에 나가도, 렌더링할때 좌표를 검사해서 렌더링 하기때문에 괜찮다고 판단.
-			//			// enemys[i].col = max(enemys[i].col - 1, 0);
-			//			if (enemys[i].moveTimer >= (50 / enemys[i].moveSpeed))
-			//			{
-			//				enemys[i].moveTimer = 0;
-			//				enemys[i].col -= 1;
-
-			//				// 여기 있어야됨. 방향전환이 칸 이동과 동시에 한번만 일어나게.
-			//				if (abs(enemys[i].col - enemys[i].spawnCol) >= enemys[i].moveRange)
-			//				{
-			//					enemys[i].moveDirection ^= 1;
-			//				}
-			//			}
-			//		}
-			//		else if (enemys[i].moveDirection == 1) // right
-			//		{
-			//			// enemys[i].col = min(enemys[i].col + 1, SCREEN_COL - 2);
-			//			if (enemys[i].moveTimer >= (50 / enemys[i].moveSpeed))
-			//			{
-			//				enemys[i].moveTimer = 0;
-			//				enemys[i].col += 1;
-
-			//				// 여기 있어야됨. 방향전환이 칸 이동과 동시에 한번만 일어나게.
-			//				if (abs(enemys[i].col - enemys[i].spawnCol) >= enemys[i].moveRange)
-			//				{
-			//					enemys[i].moveDirection ^= 1;
-			//				}
-			//			}
-			//		}
-			//		break;
-			
-
-			// shot logic
-			if (enemys[i].shotTimer >= enemys[i].shotCooldown)
-			{
-				switch (enemys[i].shotType)
-				{
-					case ShotType::DOWN:
-						CreateEnemyBullet(&enemys[i], 1, 0);
-						break;
-					case ShotType::FOUR_WAY:
-						CreateEnemyBullet(&enemys[i], 0, -1);
-						CreateEnemyBullet(&enemys[i], 0, 1);
-						CreateEnemyBullet(&enemys[i], -1, 0);
-						CreateEnemyBullet(&enemys[i], 1, 0);
-						break;
-					case ShotType::EIGHT_WAY:
-						CreateEnemyBullet(&enemys[i], 0, -1);
-						CreateEnemyBullet(&enemys[i], -1, -1);
-						CreateEnemyBullet(&enemys[i], -1, 0);
-						CreateEnemyBullet(&enemys[i], -1, 1);
-						CreateEnemyBullet(&enemys[i], 0, 1);
-						CreateEnemyBullet(&enemys[i], 1, 1);
-						CreateEnemyBullet(&enemys[i], 1, 0);
-						CreateEnemyBullet(&enemys[i], 1, -1);
-						break;
-				}
-
-				enemys[i].shotTimer = 0;
-			}
+			case ShotType::DOWN:
+				CreateEnemyBullet(&enemys[i], 1, 0);
+				break;
+			case ShotType::FOUR_WAY:
+				CreateEnemyBullet(&enemys[i], 0, -1);
+				CreateEnemyBullet(&enemys[i], 0, 1);
+				CreateEnemyBullet(&enemys[i], -1, 0);
+				CreateEnemyBullet(&enemys[i], 1, 0);
+				break;
+			case ShotType::EIGHT_WAY:
+				CreateEnemyBullet(&enemys[i], 0, -1);
+				CreateEnemyBullet(&enemys[i], -1, -1);
+				CreateEnemyBullet(&enemys[i], -1, 0);
+				CreateEnemyBullet(&enemys[i], -1, 1);
+				CreateEnemyBullet(&enemys[i], 0, 1);
+				CreateEnemyBullet(&enemys[i], 1, 1);
+				CreateEnemyBullet(&enemys[i], 1, 0);
+				CreateEnemyBullet(&enemys[i], 1, -1);
+				break;
 		}
+
+		enemys[i].shotTimer = 0;
 	}
 }
 
@@ -467,4 +415,11 @@ static void EnemyBulletCollision()
 			return;
 		}
 	}
+}
+
+static void UpdateTick()
+{
+	unsigned long diff = timeGetTime() - tick;
+	deltaTime = static_cast<float>(diff) / 1000.0f;
+	tick = timeGetTime();
 }
