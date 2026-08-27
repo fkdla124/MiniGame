@@ -27,6 +27,7 @@ static void GameOverSceneInput()
 		scene = EXIT_SCENE;
 	}
 
+	// 한번의 입력으로 여러번 후루룩 넘어가는거 방지
 	if (GetAsyncKeyState('1') & 0x0001 && GetAsyncKeyState('1') & 0x8000)
 	{
 		scene = TITLE_SCENE;

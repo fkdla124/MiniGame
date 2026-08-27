@@ -4,7 +4,7 @@
 Scene scene = TITLE_SCENE;
 int currentStage = 0;
 
-// Logic 수행 회수
+// Logic 수행 횟수
 int logicCount;
 
 // Render 수행 횟수
@@ -13,13 +13,13 @@ int renderCount;
 // Render 스킵 여부
 bool renderSkip = false;
 
-// Render쪽에서 뽑아쓰는 fps
+// Render 에서 뽑아쓰는 fps
 int logicFPS;
 int renderFPS;
 
 // fps 계산
 static unsigned long fpsTick = timeGetTime();
-static void CountFPS();
+static void UpdateFPS();
 
 // fps 제한
 static unsigned long mainTick = timeGetTime();
@@ -63,7 +63,7 @@ int main()
 				return 0;
 		}
 
-		CountFPS();
+		UpdateFPS();
 
 		LimitFPS();
 	}
@@ -71,12 +71,14 @@ int main()
 	return 0;
 }
 
-static void CountFPS()
+static void UpdateFPS()
 {
 	unsigned long diff = timeGetTime() - fpsTick;
+
 	if (diff >= 1000)
 	{
 		fpsTick += 1000;
+
 		logicFPS = logicCount;
 		renderFPS = renderCount;
 		logicCount = 0;

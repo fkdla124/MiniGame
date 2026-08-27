@@ -145,11 +145,13 @@ static void GameSceneRender()
 
 static void UpdatePlayer()
 {
+	// 타이머 갱신
 	player.moveTimer++;
 	player.shotTimer += deltaTime;
 }
 static void UpdateEnemy()
 {
+	// 타이머 갱신
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
 	{
 		if (enemys[i].visible)
@@ -159,11 +161,13 @@ static void UpdateEnemy()
 		}
 	}
 
+	// 이동 + 발사
 	MoveEnemy();
 	ShotEnemy();
 }
 static void UpdatePlayerBullets()
 {
+	// 타이머 갱신
 	for (int i = 0; i < MAX_PLAYER_BULLET_COUNT; i++)
 	{
 		if (playerBullets[i].visible)
@@ -172,10 +176,12 @@ static void UpdatePlayerBullets()
 		}
 	}
 
+	// 이동
 	MovePlayerBullet();
 }
 static void UpdateEnemyBullets()
 {
+	// 타이머 갱신
 	for (int i = 0; i < MAX_ENEMY_BULLET_COUNT; i++)
 	{
 		if (enemyBullets[i].visible)
@@ -184,24 +190,27 @@ static void UpdateEnemyBullets()
 		}
 	}
 
+	// 이동
 	MoveEnemyBullet();
 }
 
 static void CheckCollision()
 {
+	// 총알 충돌처리
 	PlayerBulletCollision();
 	EnemyBulletCollision();
 }
 
 static void CheckGameClear()
 {
+	// 적 있나 체크
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++)
 	{
 		if (enemys[i].visible)
 			return;
 	}
 
-
+	// 스테이지 넘기고 로딩씬
 	if (currentStage == (stageCount - 1))
 	{
 		scene = GAME_CLEAR_SCENE;
@@ -236,6 +245,7 @@ static void MoveEnemy()
 				break;
 		}
 
+		// 자신이 갖고있는 이동패턴 반복순회
 		enemys[i].movePatternIndex = (enemys[i].movePatternIndex + 1) % enemys[i].movePatternSize;
 		enemys[i].moveTimer = 0;
 	}
@@ -282,7 +292,7 @@ static void MovePlayerBullet()
 		if (!playerBullets[i].visible)
 			continue;
 
-		// 다음 좌표가 화면밖이면 지우기
+		// 다음 좌표가 화면밖이면 이동 없이 지우기
 		if (playerBullets[i].row - 1 < 0)
 		{
 			playerBullets[i].visible = false;
@@ -303,6 +313,12 @@ static void CreatePlayerBullet()
 	if (player.shotTimer < player.shotCooldown)
 		return;
 
+	// ex) 5발 생성시.
+	// 
+	//  ↓ 여기서부터 offset으로 이동하며 한발씩 생성, 해당 위치가 화면 밖이면 생성 X
+	//  01234
+	//    P
+	//
 	int count = 3; // 한번에 생성할 총알.
 	int offset = 0;
 	for (int i = 0; i < MAX_PLAYER_BULLET_COUNT; i++)
@@ -377,7 +393,7 @@ static void MoveEnemyBullet()
 		if (enemyBullets[i].moveTimer < (50 / enemyBullets[i].moveSpeed))
 			continue;
 
-		// 다음 좌표가 화면밖이면 삭제하고 continue
+		// 다음 좌표가 화면밖이면 이동없이 삭제
 		if (enemyBullets[i].col - 1 < 0 || enemyBullets[i].row - 1 < 0 || enemyBullets[i].row + 1 >= SCREEN_ROW || enemyBullets[i].col + 1 >= SCREEN_COL - 1)
 		{
 			enemyBullets[i].visible = false;

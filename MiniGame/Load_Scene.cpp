@@ -530,35 +530,36 @@ static void InitEnemy()
 		{
 			for (int q = 0; q < enemyDataCount; q++)
 			{
-				if (stages[currentStage].screen[i][j] == enemyDatas[q].sprite)
-				{
-					for (int k = 0; k < MAX_ENEMY_COUNT; k++)
-					{
-						if (!enemys[k].visible)
-						{
-							enemys[k].sprite = enemyDatas[q].sprite;
-							enemys[k].shotType = enemyDatas[q].shotType;
-							enemys[k].hp = enemyDatas[q].hp;
-							enemys[k].attack = enemyDatas[q].attack;
-							enemys[k].moveSpeed = enemyDatas[q].moveSpeed;
-							enemys[k].bulletSpeed = enemyDatas[q].bulletSpeed;
-							enemys[k].shotCooldown = enemyDatas[q].shotCooldown;
-							enemys[k].row = i;
-							enemys[k].col = j;
-							enemys[k].visible = true;
+				if (enemyDatas[q].sprite != stages[currentStage].screen[i][j])
+					continue;
 
-							for (int w = 0; w < movePatternCount; w++)
-							{
-								if (movePatterns[w].patternId == enemyDatas[q].movePattern)
-								{
-									enemys[k].movePattern = movePatterns[w].pattern;
-									enemys[k].movePatternSize = movePatterns[w].patternSize;
-									enemys[k].movePatternIndex = 0;
-								}
-							}
-							break;
+				for (int k = 0; k < MAX_ENEMY_COUNT; k++)
+				{
+					if (enemys[k].visible)
+						continue;
+
+					enemys[k].sprite = enemyDatas[q].sprite;
+					enemys[k].shotType = enemyDatas[q].shotType;
+					enemys[k].hp = enemyDatas[q].hp;
+					enemys[k].attack = enemyDatas[q].attack;
+					enemys[k].moveSpeed = enemyDatas[q].moveSpeed;
+					enemys[k].bulletSpeed = enemyDatas[q].bulletSpeed;
+					enemys[k].shotCooldown = enemyDatas[q].shotCooldown;
+					enemys[k].row = i;
+					enemys[k].col = j;
+					enemys[k].visible = true;
+
+					for (int w = 0; w < movePatternCount; w++)
+					{
+						if (movePatterns[w].patternId == enemyDatas[q].movePattern)
+						{
+							enemys[k].movePattern = movePatterns[w].pattern;
+							enemys[k].movePatternSize = movePatterns[w].patternSize;
+							enemys[k].movePatternIndex = 0;
 						}
 					}
+
+					break;
 				}
 			}
 		}
