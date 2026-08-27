@@ -26,6 +26,10 @@ static void CheckCollision();
 unsigned long tick = timeGetTime();
 static float deltaTime;
 
+extern bool renderSkip;
+extern int logicCount;
+extern int renderCount;
+
 void GameScene()
 {
 	GameSceneInput();
@@ -72,7 +76,7 @@ static void GameSceneInput()
 	}
 
 	// 적 + 총알 제거
-	if (GetAsyncKeyState('X') & 0x0001)
+	if (GetAsyncKeyState('X') & 0x0001 && GetAsyncKeyState('X') & 0x8000)
 	{
 		memset(enemyBullets, 0, sizeof(enemyBullets));
 		memset(enemys, 0, sizeof(enemys));
@@ -81,6 +85,11 @@ static void GameSceneInput()
 
 static void GameSceneLogic()
 {
+	// 렌더링 스킵 테스트용 (로직 부하)
+	// Sleep(18);
+
+	logicCount++;
+
 	UpdateTick();
 
 	UpdatePlayer();
@@ -95,6 +104,14 @@ static void GameSceneLogic()
 
 static void GameSceneRender()
 {
+	if (renderSkip)
+	{
+		renderSkip = false;
+		return;
+	}
+
+	renderCount++;
+
 	// 화면 비우기
 	ClearGameScreen();
 

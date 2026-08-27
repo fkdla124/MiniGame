@@ -3,6 +3,10 @@
 #include "Scene.h"
 #include "Data.h"
 
+extern bool renderSkip;
+extern int logicCount;
+extern int renderCount;
+
 static void GameClearSceneInput();
 static void GameClearSceneLogic();
 static void GameClearSceneRender();
@@ -23,7 +27,7 @@ static void GameClearSceneInput()
 		scene = EXIT_SCENE;
 	}
 
-	if (GetAsyncKeyState('1') & 0x0001)
+	if (GetAsyncKeyState('1') & 0x0001 && GetAsyncKeyState('1') & 0x8000)
 	{
 		scene = TITLE_SCENE;
 	}
@@ -37,11 +41,19 @@ static void GameClearSceneInput()
 
 static void GameClearSceneLogic()
 {
-
+	logicCount++;
 }
 
 static void GameClearSceneRender()
 {
+	if (renderSkip)
+	{
+		renderSkip = false;
+		return;
+	}
+	
+	renderCount++;
+
 	ClearGameScreen();
 
 	DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "=== GAME CLEAR!!! ===");

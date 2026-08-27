@@ -18,7 +18,10 @@
 // move_pattern_info.txt 파일 형식 오류
 #define MOVE_PATTERN_INFO_FILE_ERROR	0x00000020
 
+#define MAX_FILE_NAME_SIZE 100
+
 int fileError;
+char errorFileName[MAX_FILE_NAME_SIZE];
 
 extern Scene scene;
 
@@ -44,7 +47,7 @@ struct MovePattern
 	int patternSize;
 };
 
-int movePatternsCount;
+int movePatternCount;
 MovePattern* movePatterns;
 
 int enemyDataCount;
@@ -52,6 +55,10 @@ FileLoadEnemyData* enemyDatas;
 
 int stageCount;
 Stage* stages;
+
+extern bool renderSkip;
+extern int logicCount;
+extern int renderCount;
 
 static void LoadSceneInput();
 static void LoadSceneLogic();
@@ -78,6 +85,8 @@ static void LoadSceneInput()
 
 static void LoadSceneLogic()
 {
+	logicCount++;
+
 	// 첫 로딩에만 파일 읽기
 	if (firstLoad)
 	{
@@ -105,36 +114,50 @@ static void LoadSceneLogic()
 
 static void LoadSceneRender()
 {
+	if (renderSkip)
+	{
+		renderSkip = false;
+		return;
+	}
+
+	renderCount++;
+
 	ClearGameScreen();
 
 	switch (fileError)
 	{
 		case FILE_OPEN_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] File Open Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] File Open Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		case STAGE_INFO_FILE_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] Stage Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] Stage Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		case STAGE_FILE_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] Stage File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] Stage File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		case ENEMY_INFO_FILE_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] Enemy Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] Enemy Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		case ENEMY_FILE_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] Enemy File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] Enemy File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		case MOVE_PATTERN_INFO_FILE_ERROR:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[Loading Error] Move Pattern Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2 - 1, SCREEN_COL / 3, "[Loading Error] Move Pattern Info File Error");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, errorFileName);
 			break;
 
 		default:
-			DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "Loading...");
+			DrawTextGameScreen(SCREEN_ROW / 2, SCREEN_COL / 3, "Loading...");
 			break;
 
 	}
@@ -148,21 +171,30 @@ static void LoadGameData()
 
 	// stage_info.txt 파일 작업
 	// ==============================================================================================================
-	fopen_s(&fp, "stage/stage_info.txt", "r");
+	fopen_s(&fp, "stage/stage_info.txt", "rb");
 
 	if (fp == NULL)
 	{
 		scene = EXIT_SCENE;
 		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "stage/stage_info.txt");
 		return;
 	}
 
 	fseek(fp, 0, SEEK_END);
-	int stageInfoFilesize = ftell(fp);
+	long stageInfoFileSize = ftell(fp);
+	if (stageInfoFileSize < 0)
+	{
+		scene = EXIT_SCENE;
+		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "stage/stage_info.txt");
+		return;
+	}
 	fseek(fp, 0, SEEK_SET);
 
-	char* stageInfoFileBuffer = new char[stageInfoFilesize];
-	fread(stageInfoFileBuffer, 1, stageInfoFilesize, fp);
+	char* stageInfoFileBuffer = new char[stageInfoFileSize + 1];
+	stageInfoFileBuffer[stageInfoFileSize] = '\0';
+	fread(stageInfoFileBuffer, 1, stageInfoFileSize, fp);
 
 	fclose(fp);
 	// ==============================================================================================================
@@ -180,6 +212,7 @@ static void LoadGameData()
 	{
 		scene = EXIT_SCENE;
 		fileError = STAGE_INFO_FILE_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "stage/stage_info.txt");
 		return;
 	}
 	stageInfoFilePtr += stageInfoFileOffset;
@@ -187,15 +220,16 @@ static void LoadGameData()
 	stages = new Stage[stageCount];
 	for (int i = 0; i < stageCount; i++)
 	{
-		char stageFileName[100]; // 파일명 100글자 이내라고 가정
+		char stageFileName[MAX_FILE_NAME_SIZE];
+		strcpy_s(stageFileName, sizeof(stageFileName), "stage/");
 
-		if (sscanf_s(stageInfoFilePtr, "%99s%n", stageFileName, (unsigned)sizeof(stageFileName), &stageInfoFileOffset) != 1)
+		if (sscanf_s(stageInfoFilePtr, "%93s%n", &stageFileName[6], (unsigned)sizeof(stageFileName) - 6, &stageInfoFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = STAGE_INFO_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), "stage/stage_info.txt");
 			return;
 		}
-		stageFileName[sizeof(stageFileName) - 1] = '\0';
 		stageInfoFilePtr += stageInfoFileOffset;
 
 		fopen_s(&fp, stageFileName, "r");
@@ -204,6 +238,7 @@ static void LoadGameData()
 		{
 			scene = EXIT_SCENE;
 			fileError = FILE_OPEN_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), stageFileName);
 			return;
 		}
 
@@ -211,6 +246,7 @@ static void LoadGameData()
 		{
 			scene = EXIT_SCENE;
 			fileError = STAGE_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), stageFileName);
 			return;
 		}
 
@@ -226,29 +262,41 @@ static void LoadGameData()
 
 	// enemy_info.txt 작업
 	// ==============================================================================================================
-	fopen_s(&fp, "enemy/enemy_info.txt", "r");
+	fopen_s(&fp, "enemy/enemy_info.txt", "rb");
 
 	if (fp == NULL)
 	{
 		scene = EXIT_SCENE;
 		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "enemy/enemy_info.txt");
 		return;
 	}
 
 	// enemy.txt 개수 세기
-	while (!feof(fp))
 	{
 		char buffer[100];
-		fgets(buffer, sizeof(buffer), fp);
-		enemyDataCount++;
+		while (fgets(buffer, sizeof(buffer), fp) != NULL)
+		{
+			enemyDataCount++;
+		}
 	}
-	int enemyInfoFileSize = ftell(fp);
+
+	long enemyInfoFileSize = ftell(fp);
+	if (enemyInfoFileSize < 0)
+	{
+		scene = EXIT_SCENE;
+		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "enemy/enemy_info.txt");
+		return;
+	}
+
 	fseek(fp, 0, SEEK_SET);
 
 	enemyDatas = new FileLoadEnemyData[enemyDataCount];
 
 	// enemy_info.txt 통으로 읽기
-	char* enemyInfoFileBuffer = new char[enemyInfoFileSize];
+	char* enemyInfoFileBuffer = new char[enemyInfoFileSize + 1];
+	enemyInfoFileBuffer[enemyInfoFileSize] = '\0';
 	fread(enemyInfoFileBuffer, 1, enemyInfoFileSize, fp);
 
 	fclose(fp);
@@ -265,95 +313,113 @@ static void LoadGameData()
 
 	for (int i = 0; i < enemyDataCount; i++)
 	{
-		char enemyFileName[100];
+		char enemyFileName[MAX_FILE_NAME_SIZE];
+		strcpy_s(enemyFileName, sizeof(enemyFileName), "enemy/");
 
-		if (sscanf_s(enemyInfoFilePtr, "%c %99s\n%n", &enemyDatas[i].sprite, 1U, enemyFileName, (unsigned)sizeof(enemyFileName), &enemyInfoFileOffset) != 2)
+		if (sscanf_s(enemyInfoFilePtr, " %c %93s%n", &enemyDatas[i].sprite, 1U, &enemyFileName[6], (unsigned)sizeof(enemyFileName) - 6, &enemyInfoFileOffset) != 2)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_INFO_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), "enemy/enemy_info.txt");
 			return;
 		}
 		enemyInfoFilePtr += enemyInfoFileOffset;
-		enemyFileName[sizeof(enemyFileName) - 1] = '\0';
 
-		fopen_s(&fp, enemyFileName, "r");
+		fopen_s(&fp, enemyFileName, "rb");
 
 		if (fp == NULL)
 		{
 			scene = EXIT_SCENE;
 			fileError = FILE_OPEN_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 
 		fseek(fp, 0, SEEK_END);
-		int enemyFileSize = ftell(fp);
+		long enemyFileSize = ftell(fp);
+		if (enemyFileSize < 0)
+		{
+			scene = EXIT_SCENE;
+			fileError = FILE_OPEN_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
+			return;
+		}
 		fseek(fp, 0, SEEK_SET);
 
 
-		char* enemyFileBuffer = new char[enemyFileSize];
+		char* enemyFileBuffer = new char[enemyFileSize + 1];
+		enemyFileBuffer[enemyFileSize] = '\0';
 		fread(enemyFileBuffer, 1, enemyFileSize, fp);
 		fclose(fp);
 
 		char* enemyFilePtr = enemyFileBuffer;
 		int enemyFileOffset = 0;
-		if (sscanf_s(enemyFilePtr, "shotType=%d\n%n", &enemyDatas[i].shotType, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, "shotType=%d%n", &enemyDatas[i].shotType, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "hp=%d\n%n", &enemyDatas[i].hp, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " hp=%d%n", &enemyDatas[i].hp, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "attack=%d\n%n", &enemyDatas[i].attack, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " attack=%d%n", &enemyDatas[i].attack, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "moveSpeed=%d\n%n", &enemyDatas[i].moveSpeed, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " moveSpeed=%d%n", &enemyDatas[i].moveSpeed, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "bulletSpeed=%d\n%n", &enemyDatas[i].bulletSpeed, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " bulletSpeed=%d%n", &enemyDatas[i].bulletSpeed, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "shotCooldown=%f\n%n", &enemyDatas[i].shotCooldown, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " shotCooldown=%f%n", &enemyDatas[i].shotCooldown, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
-		if (sscanf_s(enemyFilePtr, "movePattern=%c%n", &enemyDatas[i].movePattern, 1U, &enemyFileOffset) != 1)
+		if (sscanf_s(enemyFilePtr, " movePattern=%c%n", &enemyDatas[i].movePattern, 1U, &enemyFileOffset) != 1)
 		{
 			scene = EXIT_SCENE;
 			fileError = ENEMY_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), enemyFileName);
 			return;
 		}
 		enemyFilePtr += enemyFileOffset;
 
 		delete[] enemyFileBuffer;
 	}
+	delete[] enemyInfoFileBuffer;
 	// ==============================================================================================================
 
 
@@ -362,28 +428,40 @@ static void LoadGameData()
 
 	// move_pattern_info.txt 작업
 	// ==============================================================================================================
-	fopen_s(&fp, "enemy/move_pattern_info.txt", "r");
+	fopen_s(&fp, "enemy/move_pattern_info.txt", "rb");
 
 	if (fp == NULL)
 	{
 		scene = EXIT_SCENE;
 		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "enemy/move_pattern_info.txt");
 		return;
 	}
 
-	while (!feof(fp))
 	{
 		char buffer[100];
-		fgets(buffer, sizeof(buffer), fp);
-		movePatternsCount++;
+		while (fgets(buffer, sizeof(buffer), fp) != NULL)
+		{
+			movePatternCount++;
+		}
 	}
-	int movePatternInfoFileSize = ftell(fp);
-	char* movePatternInfoFileBuffer = new char[movePatternInfoFileSize];
+
+	long movePatternInfoFileSize = ftell(fp);
+	if (movePatternInfoFileSize < 0)
+	{
+		scene = EXIT_SCENE;
+		fileError = FILE_OPEN_ERROR;
+		strcpy_s(errorFileName, sizeof(errorFileName), "enemy/move_pattern_info.txt");
+		return;
+	}
+
+	char* movePatternInfoFileBuffer = new char[movePatternInfoFileSize + 1];
+	movePatternInfoFileBuffer[movePatternInfoFileSize] = '\0';
 
 	fseek(fp, 0, SEEK_SET);
 	fread(movePatternInfoFileBuffer, 1, movePatternInfoFileSize, fp);
 
-	movePatterns = new MovePattern[movePatternsCount];
+	movePatterns = new MovePattern[movePatternCount];
 
 	fclose(fp);
 	// ==============================================================================================================
@@ -396,31 +474,39 @@ static void LoadGameData()
 	// ==============================================================================================================
 	char* movePatternInfoFilePtr = movePatternInfoFileBuffer;
 	int movePatternInfoFileOffset = 0;
-	for (int i = 0; i < movePatternsCount; i++)
+	for (int i = 0; i < movePatternCount; i++)
 	{
-		char movePatternFileName[100];
+		char movePatternFileName[MAX_FILE_NAME_SIZE];
+		strcpy_s(movePatternFileName, sizeof(movePatternFileName), "enemy/");
 
-		if (sscanf_s(movePatternInfoFilePtr, "%c %99s\n%n", &movePatterns[i].patternId, 1U, movePatternFileName, (unsigned)sizeof(movePatternFileName), &movePatternInfoFileOffset) != 2)
+		if (sscanf_s(movePatternInfoFilePtr, " %c %93s%n", &movePatterns[i].patternId, 1U, &movePatternFileName[6], (unsigned)sizeof(movePatternFileName) - 6, &movePatternInfoFileOffset) != 2)
 		{
 			scene = EXIT_SCENE;
 			fileError = MOVE_PATTERN_INFO_FILE_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), "enemy/move_pattern_info.txt");
 			return;
 		}
 		movePatternInfoFilePtr += movePatternInfoFileOffset;
 
-		movePatternFileName[sizeof(movePatternFileName) - 1] = '\0';
-
-		fopen_s(&fp, movePatternFileName, "r");
+		fopen_s(&fp, movePatternFileName, "rb");
 
 		if (fp == NULL)
 		{
 			scene = EXIT_SCENE;
 			fileError = FILE_OPEN_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), movePatternFileName);
 			return;
 		}
 
 		fseek(fp, 0, SEEK_END);
-		int patternSize = ftell(fp);
+		long patternSize = ftell(fp);
+		if (patternSize < 0)
+		{
+			scene = EXIT_SCENE;
+			fileError = FILE_OPEN_ERROR;
+			strcpy_s(errorFileName, sizeof(errorFileName), movePatternFileName);
+			return;
+		}
 		fseek(fp, 0, SEEK_SET);
 		movePatterns[i].patternSize = patternSize;
 
@@ -432,6 +518,7 @@ static void LoadGameData()
 
 		fclose(fp);
 	}
+	delete[] movePatternInfoFileBuffer;
 	// ==============================================================================================================
 }
 
@@ -460,7 +547,7 @@ static void InitEnemy()
 							enemys[k].col = j;
 							enemys[k].visible = true;
 
-							for (int w = 0; w < movePatternsCount; w++)
+							for (int w = 0; w < movePatternCount; w++)
 							{
 								if (movePatterns[w].patternId == enemyDatas[q].movePattern)
 								{
@@ -483,7 +570,7 @@ static void InitPlayer()
 	if (currentStage == 0)
 	{
 		memset(&player, 0, sizeof(player));
-		player.hp = 5;
+		player.hp = 8;
 	}
 	player.row = SCREEN_ROW - 3;
 	player.col = SCREEN_COL / 2;

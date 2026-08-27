@@ -12,16 +12,4 @@ extern void DrawSprite(int row, int col, char sprite);
 
 
 // 문자열 리터럴 or 배열을 꽉 채운 문자열만 취급
-template <size_t N>
-void DrawTextGameScreen(int row, int col, const char(&text)[N])
-{
-	if (row < 0 || row >= SCREEN_ROW || col < 0 || col >= SCREEN_COL - 1)
-		return;
-
-	int length = N - 1;
-
-	if ((N - 1) > ((SCREEN_COL - 1) - col))
-		length = ((SCREEN_COL - 1) - col);
-
-	memcpy(&gameScreen[row][col], text, length);
-}
+void DrawTextGameScreen(int row, int col, const char* str);

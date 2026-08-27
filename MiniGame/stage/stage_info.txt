@@ -1,7 +1,7 @@
 6
-stage/stage1.txt
-stage/stage2.txt
-stage/stage3.txt
-stage/stage4.txt
-stage/stage5.txt
-stage/stage6.txt
+stage1.txt
+stage2.txt
+stage3.txt
+stage4.txt
+stage5.txt
+stage6.txt

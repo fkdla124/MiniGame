@@ -5,7 +5,8 @@
 
 char gameScreen[SCREEN_ROW][SCREEN_COL];
 
-extern int fps;
+extern int logicFPS;
+extern int renderFPS;
 
 void DrawGameScreen()
 {
@@ -70,10 +71,12 @@ void DrawGameScreen()
 	{
 		std::cout << " / ";
 	}
-	std::cout << "    ";
+	std::cout << "      ";
 
-	MoveConsoleCursor(0, SCREEN_ROW + 4);
-	std::cout << " FPS : " << fps << "    ";
+	MoveConsoleCursor(SCREEN_COL - sizeof(" Logic FPS :   "), SCREEN_ROW + 2);
+	std::cout << " Logic FPS : " << logicFPS << "    ";
+	MoveConsoleCursor(SCREEN_COL - sizeof(" Render FPS :   "), SCREEN_ROW + 3);
+	std::cout << " Render FPS : " << renderFPS << "    ";
 	// ===================================================================================================================
 }
 
@@ -93,4 +96,24 @@ void DrawSprite(int row, int col, char sprite)
 		return;
 
 	gameScreen[row][col] = sprite;
+}
+
+void DrawTextGameScreen(int row, int col, const char* str)
+{
+	if (row < 0 || row >= SCREEN_ROW || col < 0 || col >= SCREEN_COL - 1)
+		return;
+
+	int length = 0;
+
+	while (*str != '\0')
+	{
+		length++;
+		str++;
+	}
+	str -= length;
+
+	if (length > ((SCREEN_COL - 1) - col))
+		length = ((SCREEN_COL - 1) - col);
+
+	memcpy(&gameScreen[row][col], str, length);
 }

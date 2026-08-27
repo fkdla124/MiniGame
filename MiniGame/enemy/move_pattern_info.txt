@@ -1,3 +1,3 @@
-1 enemy/move_pattern1.txt
-2 enemy/move_pattern2.txt
-3 enemy/move_pattern3.txt
+1 move_pattern1.txt
+2 move_pattern2.txt
+3 move_pattern3.txt

@@ -7,6 +7,10 @@ static void TitleSceneInput();
 static void TitleSceneLogic();
 static void TitleSceneRender();
 
+extern bool renderSkip;
+extern int logicCount;
+extern int renderCount;
+
 void TitleScene()
 {
 	TitleSceneInput();
@@ -32,11 +36,19 @@ static void TitleSceneInput()
 
 static void TitleSceneLogic()
 {
-
+	logicCount++;
 }
 
 static void TitleSceneRender()
 {
+	if (renderSkip)
+	{
+		renderSkip = false;
+		return;
+	}
+
+	renderCount++;
+
 	ClearGameScreen();
 
 	DrawTextGameScreen(SCREEN_ROW / 3, SCREEN_COL / 3, "[ Mini Shooting Game ]");
