@@ -7,7 +7,7 @@
 <br>
 
 # 플레이 이미지
-![image](ShotingGame.gif)
+![image](ShootingGame.gif)
 
 <br>
 
